@@ -68,7 +68,7 @@ def main():
 
     print()
     print('Удаление объектов')
-    for obj in ['sample.txt', 'new_file']:
+    for obj in ['sample.txt', 'new_file', 'copy_object']:
         try:
             s3.delete_object(Bucket=BUCKET['Name'], Key=obj)
             print(f'Объект {obj} удален')
