@@ -1,0 +1,10 @@
+{
+  "name": "s3-nodejs-examples",
+  "version": "1.0.0",
+  "dependencies": {
+    "aws-sdk": "^2.1035.0"
+  },
+  "devDependencies": {
+    "@types/node": "^14.0.23"
+  }
+}
