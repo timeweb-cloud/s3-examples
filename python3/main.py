@@ -48,6 +48,11 @@ def main():
     s3.upload_file(Filename=FILENAME, Bucket=BUCKET['Name'], Key='sample.txt')
 
     print()
+    print('Загрузка объекта в бакет')
+    with open('sample.txt', 'rb') as data:
+        s3.upload_fileobj(data, BUCKET['Name'], 'sample-obj.txt')
+
+    print()
     print('Список объектов в бакете')
     for obj in s3.list_objects(Bucket=BUCKET['Name']).get('Contents', []):
         print(obj['Key'])
@@ -68,7 +73,7 @@ def main():
 
     print()
     print('Удаление объектов')
-    for obj in ['sample.txt', 'new_file', 'copy_object']:
+    for obj in ['sample.txt', 'sample-obj.txt', 'new_file', 'copy_object']:
         try:
             s3.delete_object(Bucket=BUCKET['Name'], Key=obj)
             print(f'Объект {obj} удален')
