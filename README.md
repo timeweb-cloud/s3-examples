@@ -124,6 +124,6 @@ Hex(SHA256Hash(<CanonicalRequest>))
 
 ## Примеры использования AWS SDK для разных языков
 
-- [Node.js](https://github.com/timeweb/s3-examples/tree/master/nodejs)
-- [Python3](https://github.com/timeweb/s3-examples/tree/master/python3)
+- [Node.js](https://github.com/timeweb-cloud/s3-examples/tree/master/nodejs)
+- [Python3](https://github.com/timeweb-cloud/s3-examples/tree/master/python3)
 - PHP
