@@ -5,7 +5,8 @@
 Для запуска использовать:
 
 ```shell
-node ./src/sample.js
+cd src
+node ./sample.js
 ```
 
 Все примеры и документация доступны в [AWS](https://docs.aws.amazon.com/sdk-for-javascript/v3/developer-guide/welcome.html).
