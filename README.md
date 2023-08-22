@@ -126,4 +126,4 @@ Hex(SHA256Hash(<CanonicalRequest>))
 
 - [Node.js](https://github.com/timeweb-cloud/s3-examples/tree/master/nodejs)
 - [Python3](https://github.com/timeweb-cloud/s3-examples/tree/master/python3)
-- PHP
+- [PHP](https://github.com/timeweb-cloud/s3-examples/tree/master/php)
