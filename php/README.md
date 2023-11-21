@@ -13,3 +13,5 @@ composer install
 ```
 php index.php
 ```
+
+Все примеры и документация доступны в [AWS](https://aws.amazon.com/ru/sdk-for-php/).
