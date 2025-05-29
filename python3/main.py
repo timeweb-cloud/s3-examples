@@ -12,9 +12,9 @@ def main():
     # Создание клиента
     s3 = boto3.client(
         's3',
-        endpoint_url='https://s3.timeweb.com',
+        endpoint_url='https://s3.twcstorage.ru',
         region_name='ru-1',
-        aws_access_key_id='<account_name>', # <--- заменить
+        aws_access_key_id='<access_key>', # <--- заменить
         aws_secret_access_key='<secret_key>', # <--- заменить
         config=Config(s3={'addressing_style': 'path'})
     )

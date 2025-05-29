@@ -11,9 +11,9 @@ const copyParams = { Bucket: bucketParams.Bucket, CopySource: `${bucketParams.Bu
 
 console.log('Создание клиента')
 const s3 = new S3({
-  accessKeyId: '<account_name>', // <--- заменить
+  accessKeyId: '<access_key>', // <--- заменить
   secretAccessKey: '<secret_key>', // <--- заменить
-  endpoint: 'https://s3.timeweb.com',
+  endpoint: 'https://s3.twcstorage.ru',
   s3ForcePathStyle: true,
   region: 'ru-1',
   apiVersion: 'latest',
