@@ -1,0 +1,14 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "Run .NET Sample",
+            "command": "dotnet",
+            "type": "shell",
+            "args": ["run", "sample.cs"],
+            "options": {
+                "cwd": "${workspaceFolder}/dotnet/src"
+            },
+        }
+    ]
+}
