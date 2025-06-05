@@ -5,20 +5,32 @@
 
 using Amazon.Runtime;
 using Amazon.S3;
+using Amazon.S3.Model;
 using DotNetEnv;
 using Microsoft.Extensions.Configuration;
 using System;
+using System.Text.Json;
 
 Env.Load();
 var builder = new ConfigurationBuilder()
     .AddEnvironmentVariables();
 var configuration = builder.Build();
-var settings = configuration.GetSection("S3").Get<S3Settings>();
+var settings = configuration.GetSection("S3").Get<S3Settings>()!;
 
 var s3Client = CreateS3Client(settings);
 Console.WriteLine("S3 Клиент успешно создан и готов к работе.");
 
-Console.WriteLine($"Создание бакета {settings.BucketName}...");
+Console.WriteLine($"Создание бакета {settings.BucketName}.");
+await TryExecute(
+    s3Client.PutBucketAsync(new PutBucketRequest { BucketName = settings.BucketName }));
+    
+Console.WriteLine($"Получение информации о регионе бакета {settings.BucketName}.");
+await TryExecute(
+    s3Client.GetBucketLocationAsync(new GetBucketLocationRequest { BucketName = settings.BucketName }));
+
+Console.WriteLine($"Получение списка бакетов.");
+await TryExecute(
+    s3Client.ListBucketsAsync());
 
 /// <summary>
 /// Создает экземпляр клиента Amazon S3 с заданными настройками.
@@ -42,6 +54,20 @@ AmazonS3Client CreateS3Client(S3Settings? s3Settings)
     var credentials = new BasicAWSCredentials(s3Settings.AccessKey, s3Settings.SecretKey);
     var client = new AmazonS3Client(credentials, config);
     return client;
+}
+
+async Task TryExecute<T>(Task<T> action) where T : AmazonWebServiceResponse
+{
+    try
+    {
+        var response = await action;
+        Console.WriteLine($"Операция выполнена успешно. Результат: \n" +
+            $"{ JsonSerializer.Serialize(response, new JsonSerializerOptions { WriteIndented = true })}\n");
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"Ошибка: {ex.Message}");
+    }
 }
 
 /// <summary>
