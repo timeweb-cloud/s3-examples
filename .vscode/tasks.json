@@ -8,7 +8,10 @@
             "args": ["run", "sample.cs"],
             "options": {
                 "cwd": "${workspaceFolder}/dotnet/src"
-            },
+            },  
+            "group": {
+                "kind": "build"
+            }
         }
     ]
 }
