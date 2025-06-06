@@ -2,12 +2,16 @@
 #:package Microsoft.Extensions.Configuration.EnvironmentVariables@9.0.5
 #:package Microsoft.Extensions.Configuration.Binder@9.0.5
 #:package DotNetEnv@3.1.1
+#:package Spectre.Console.Cli@0.50.0
+#:package Spectre.Console.Json@0.50.0
 
 using Amazon.Runtime;
 using Amazon.S3;
 using Amazon.S3.Model;
 using DotNetEnv;
 using Microsoft.Extensions.Configuration;
+using Spectre.Console;
+using Spectre.Console.Json;
 using System;
 using System.Text.Json;
 
@@ -32,14 +36,8 @@ Console.WriteLine($"Получение списка бакетов.");
 await TryExecute(
     s3Client.ListBucketsAsync());
 
-/// <summary>
-/// Создает экземпляр клиента Amazon S3 с заданными настройками.
-/// </summary>
-/// <param name="s3Settings">Настройки для подключения к S3.</param>
-/// <returns>Экземпляр клиента Amazon S3.</returns>
-/// <exception cref="ArgumentNullException">Если s3Settings равен null.</exception>
-/// <exception cref="ArgumentException">Если какие-либо обязательные поля в s3Settings пустые.</exception>
-AmazonS3Client CreateS3Client(S3Settings? s3Settings)
+
+static AmazonS3Client CreateS3Client(S3Settings? s3Settings)
 {
     if (s3Settings == null)
         throw new ArgumentNullException(nameof(s3Settings), "Настройки S3 не могут быть пустыми.");
@@ -56,13 +54,36 @@ AmazonS3Client CreateS3Client(S3Settings? s3Settings)
     return client;
 }
 
-async Task TryExecute<T>(Task<T> action) where T : AmazonWebServiceResponse
+#region 
+static async Task TryExecute<T>(Task<T> action) where T : AmazonWebServiceResponse
 {
     try
     {
         var response = await action;
-        Console.WriteLine($"Операция выполнена успешно. Результат: \n" +
-            $"{ JsonSerializer.Serialize(response, new JsonSerializerOptions { WriteIndented = true })}\n");
+        var json = JsonSerializer.Serialize(response, new JsonSerializerOptions
+        {
+            WriteIndented = true,
+            PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+        });
+        Console.WriteLine($"Операция выполнена успешно. Результат: \n");
+        // JSON в формате Visual Studio Code
+        AnsiConsole.Write(
+            new Panel(
+                new JsonText(json)
+					.BracesColor(Color.Grey84)
+					.BracketColor(Color.Grey84)
+					.ColonColor(Color.Grey84)
+					.CommaColor(Color.Grey84)
+					.StringColor(Color.LightSalmon3_1)
+					.NumberColor(Color.DarkSeaGreen3_1)
+					.BooleanColor(Color.SkyBlue3)
+					.NullColor(Color.SkyBlue3)
+					.MemberColor(Color.SteelBlue1_1)
+            )
+            .Header("JSON")
+            .Collapse()
+            .RoundedBorder()
+            .BorderColor(Color.Yellow));
     }
     catch (Exception ex)
     {
@@ -74,15 +95,17 @@ async Task TryExecute<T>(Task<T> action) where T : AmazonWebServiceResponse
 /// Класс для хранения настроек подключения к Amazon S3.
 /// Используется для конфигурации клиента S3.
 /// 
+/// Заполняется автоматически из переменных окружения (файл .env)
+/// 
 /// Данные для подключения к S3 хранилищу Timeweb Cloud 
 /// можно найти во вкладке `Дашборд` в разделе `Хранилище S3` 
 /// в личном кабинете Timeweb Cloud.
 /// </summary>
 class S3Settings
 {
+    public required string ServiceUrl { get; set; }
     public required string AccessKey { get; set; }
     public required string SecretKey { get; set; }
-    public required string ServiceUrl { get; set; }
     public required string BucketName { get; set; }
     public required string Region { get; set; }
 
@@ -93,3 +116,4 @@ class S3Settings
         !string.IsNullOrEmpty(BucketName) &&
         !string.IsNullOrEmpty(Region);
 }
+#endregion
