@@ -2,13 +2,44 @@
     "version": "2.0.0",
     "tasks": [
         {
-            "label": "Run .NET Sample",
-            "command": "dotnet",
+            "label": ".NET Sample. Local: Run .NET Sample Locally",
+            "detail": "Run a .NET sample application locally. Requires .NET SDK 10 to be installed.",
             "type": "shell",
+            "command": "dotnet",
             "args": ["run", "sample.cs"],
             "options": {
                 "cwd": "${workspaceFolder}/dotnet/src"
             },  
+            "group": {
+                "kind": "build"
+            }
+        },
+        {
+            "label": ".NET Sample. Docker: Build Docker Image",
+            "detail": "Build a Docker image for the .NET sample application. Requires Docker to be installed.",
+            "type": "docker-build",
+            "dockerBuild": {
+                "context": "${workspaceFolder}/dotnet/src",
+                "dockerfile": "${workspaceFolder}/dotnet/Dockerfile",
+                "tag": "dotnet-s3-example:latest"
+            }
+        },
+        {
+            "label": ".NET Sample. Docker: Build an Image and Run Container",
+            "detail": "Run a .NET sample application in a Docker container. Requires Docker to be installed.",
+            "type": "process",
+            "command": "docker",
+            "args": [
+                "run", 
+                "--rm", 
+                "-it",
+                "--name",
+                "dotnet-s3-example",
+                "--env-file",
+                "${workspaceFolder}/dotnet/src/.env",
+                "dotnet-s3-example:latest"
+            ],
+            "dependsOn": ".NET Sample. Docker: Build Docker Image",
             "group": {
                 "kind": "build"
             }
