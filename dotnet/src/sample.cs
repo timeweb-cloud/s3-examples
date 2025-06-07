@@ -108,7 +108,7 @@ static AmazonS3Client CreateS3Client(S3Settings? s3Settings)
 {
     if (s3Settings == null)
         throw new ArgumentNullException(nameof(s3Settings), "Настройки S3 не могут быть пустыми.");
-    if (string.IsNullOrEmpty(s3Settings.AccessKey) || string.IsNullOrEmpty(s3Settings.SecretKey))
+    if (!s3Settings.IsValid())
         throw new ArgumentException("Все поля в настройках S3 должны быть заполнены, включая AccessKey, SecretKey, BucketName и ServiceUrl.");
 
     var config = new AmazonS3Config
