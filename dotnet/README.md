@@ -33,7 +33,7 @@
 Для локального запуска требуется установка [dotnet SDK версии >=10](https://dotnet.microsoft.com/en-us/download/dotnet/10.0) и заполненный `.env` файл.
 
 После установки достаточно выполнить эту команду в любой консоли (убедитесь что выполняете команду из папки ./dotnet/src):
-```bash
+```console
 dotnet run sample.cs
 ```
 
@@ -46,12 +46,12 @@ dotnet run sample.cs
 **Stage 2**: Копирует компилированные файлы в исполняемый образ и создает `ENTRYPOINT`
 
 Для сборки проекта достаточно выполнить следующую CLI команду, находясь в папке `./dotnet`:
-```bash
+```console
 docker build -t dotnet-s3-example:latest ./src
 ```
 
 Для запуска приложения после сборки:
-```bash
+```console
 docker run --rm -it --name dotnet-s3-example --env-file ./src/.env dotnet-s3-example:latest
 ```
 
