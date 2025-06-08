@@ -16,12 +16,7 @@ using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
-Env.Load();
-var builder = new ConfigurationBuilder()
-    .AddEnvironmentVariables();
-var configuration = builder.Build();
-var settings = configuration.GetSection("S3").Get<S3Settings>()!;
-
+var settings = LoadS3Settings();
 var s3Client = CreateS3Client(settings);
 Console.WriteLine("S3 Клиент успешно создан и готов к работе.");
 
@@ -104,13 +99,8 @@ Console.WriteLine($"Удаление бакета {settings.BucketName}.");
 await TryExecute(
     s3Client.DeleteBucketAsync(new DeleteBucketRequest { BucketName = settings.BucketName }));
 
-static AmazonS3Client CreateS3Client(S3Settings? s3Settings)
+static AmazonS3Client CreateS3Client(S3Settings s3Settings)
 {
-    if (s3Settings == null)
-        throw new ArgumentNullException(nameof(s3Settings), "Настройки S3 не могут быть пустыми.");
-    if (!s3Settings.IsValid())
-        throw new ArgumentException("Все поля в настройках S3 должны быть заполнены, включая AccessKey, SecretKey, BucketName и ServiceUrl.");
-
     var config = new AmazonS3Config
     {
         ServiceURL = s3Settings.ServiceUrl,
@@ -119,6 +109,24 @@ static AmazonS3Client CreateS3Client(S3Settings? s3Settings)
     var credentials = new BasicAWSCredentials(s3Settings.AccessKey, s3Settings.SecretKey);
     var client = new AmazonS3Client(credentials, config);
     return client;
+}
+
+static S3Settings LoadS3Settings()
+{
+    Env.Load();
+
+    var configuration = new ConfigurationBuilder()
+        .AddEnvironmentVariables()
+        .Build();
+
+    var settings = configuration.GetSection("S3").Get<S3Settings>();
+
+    if (settings == null)
+        throw new ArgumentNullException(nameof(settings), "Настройки S3 не могут быть пустыми.");
+    if (!settings.IsValid())
+        throw new ArgumentException("Все поля в настройках S3 должны быть заполнены, включая AccessKey, SecretKey, BucketName и ServiceUrl.");
+
+    return settings;
 }
 
 #region 
