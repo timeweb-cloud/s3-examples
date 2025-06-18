@@ -164,7 +164,7 @@ static async Task TryExecute<T>(Task<T> action) where T : AmazonWebServiceRespon
     }
     catch (Exception ex)
     {
-        Console.WriteLine($"Ошибка: {ex.Message}");
+        Console.WriteLine($"Ошибка: {ex.Message}\n{ex.StackTrace}\nВложенная ошибка: {ex.InnerException?.Message}\n{ex.InnerException?.StackTrace}");
     }
 }
 static async Task TryRetrieve<T>(Task<T> action) where T : StreamResponse
@@ -185,7 +185,7 @@ static async Task TryRetrieve<T>(Task<T> action) where T : StreamResponse
     }
     catch (Exception ex)
     {
-        Console.WriteLine($"Ошибка: {ex.Message}");
+        Console.WriteLine($"Ошибка: {ex.Message}\n{ex.StackTrace}\nВложенная ошибка: {ex.InnerException?.Message}\n{ex.InnerException?.StackTrace}");
     }
 }
 
