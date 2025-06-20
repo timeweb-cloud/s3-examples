@@ -104,7 +104,8 @@ static AmazonS3Client CreateS3Client(S3Settings s3Settings)
     var config = new AmazonS3Config
     {
         ServiceURL = s3Settings.ServiceUrl,
-        ForcePathStyle = true
+        ForcePathStyle = true,
+		AuthenticationRegion = s3Settings.Region
     };
     var credentials = new BasicAWSCredentials(s3Settings.AccessKey, s3Settings.SecretKey);
     var client = new AmazonS3Client(credentials, config);
