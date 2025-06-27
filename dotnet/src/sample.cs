@@ -1,4 +1,4 @@
-#:package AWSSDK.S3@3.5.10.2
+#:package AWSSDK.S3@4.0.2
 #:package Microsoft.Extensions.Configuration.EnvironmentVariables@9.0.5
 #:package Microsoft.Extensions.Configuration.Binder@9.0.5
 #:package DotNetEnv@3.1.1
@@ -38,7 +38,9 @@ await TryExecute(
     {
         BucketName = settings.BucketName,
         Key = "example-from-text.txt",
-        ContentBody = "Привет, это файл созданный из текста!"
+        ContentBody = "Привет, это файл созданный из текста!",
+        // флаг для обратной совместимостью с Timeweb S3, убрать когда Timeweb S3 актуализируется
+		DisableDefaultChecksumValidation = true
     }));
 
 Console.WriteLine($"Отправка нового текстового файла.");
@@ -49,7 +51,9 @@ await TryExecute(
     {
         BucketName = settings.BucketName,
         Key = "example-from-file.txt",
-        InputStream = file
+        InputStream = file,
+        // флаг для обратной совместимостью с Timeweb S3, убрать когда Timeweb S3 актуализируется
+		DisableDefaultChecksumValidation = true
     }));
 
 Console.WriteLine($"Получение списка объектов в бакете {settings.BucketName}.");
