@@ -15,6 +15,7 @@ using System;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using System.Text.Json.Serialization.Metadata;
 
 var settings = LoadS3Settings();
 var s3Client = CreateS3Client(settings);
@@ -105,12 +106,67 @@ await TryExecute(
     })
 );
 
+Console.WriteLine("Создание правил жизненного цикла файлов: " +
+    "правила по тегу `deleted=true`, по названию папок `deleted/`");
+LifecycleRule[] rules =
+[
+    new()
+    {
+        Id = "DeletedTagRetention",
+        Status = LifecycleRuleStatus.Enabled,
+        Filter = new LifecycleFilter
+        {
+            LifecycleFilterPredicate = new LifecycleTagPredicate
+            {
+                Tag = new Tag { Key = "deleted", Value = "true" }
+            }
+        },
+        Expiration = new LifecycleRuleExpiration { Days = 1 }
+    },
+    new()
+    {
+        Id = "DeletedFolderRetention",
+        Status = LifecycleRuleStatus.Enabled,
+        Filter = new LifecycleFilter
+        {
+            LifecycleFilterPredicate = new LifecyclePrefixPredicate { Prefix = "deleted/" }
+        },
+        Expiration = new LifecycleRuleExpiration { Days = 1 }
+    }
+];
+await TryExecute(
+    s3Client.PutLifecycleConfigurationAsync(new PutLifecycleConfigurationRequest
+    {
+        BucketName = settings.BucketName,
+        Configuration = new LifecycleConfiguration
+        {
+            Rules = [.. rules]
+        }
+    })
+);
+
+Console.WriteLine("Получение правил жизненного цикла файлов");
+await TryExecute(
+    s3Client.GetLifecycleConfigurationAsync(new GetLifecycleConfigurationRequest
+    {
+        BucketName = settings.BucketName
+    })
+);
+
 Console.WriteLine("Удаление всех тегов присвоенных файлу `example-from-text-copy.txt`");
 await TryExecute(
     s3Client.DeleteObjectTaggingAsync(new DeleteObjectTaggingRequest
     {
         BucketName = settings.BucketName,
         Key = "example-from-text-copy.txt"
+    })
+);
+
+Console.WriteLine("Удаление всех правил жизненного цикла файлов");
+await TryExecute(
+    s3Client.DeleteLifecycleConfigurationAsync(new DeleteLifecycleConfigurationRequest
+    {
+        BucketName = settings.BucketName
     })
 );
 
@@ -162,7 +218,7 @@ static S3Settings LoadS3Settings()
     return settings;
 }
 
-#region 
+#region Рендеринг и обработка ошибок
 static async Task TryExecute<T>(Task<T> action) where T : AmazonWebServiceResponse
 {
     try
@@ -172,7 +228,28 @@ static async Task TryExecute<T>(Task<T> action) where T : AmazonWebServiceRespon
         {
             WriteIndented = true,
             PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-            DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingDefault
+            DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingDefault,
+            //твик чтобы показать информацию про правила жизненного цикла объектов
+            TypeInfoResolver = new DefaultJsonTypeInfoResolver
+            {
+                Modifiers =
+                {
+                    ti =>
+                    {
+                        if (ti.Type == typeof(LifecycleFilterPredicate))
+                        {
+                            ti.PolymorphismOptions = new JsonPolymorphismOptions
+                            {
+                                DerivedTypes =
+                                {
+                                    new JsonDerivedType(typeof(LifecycleTagPredicate), "tagPredicate"),
+                                    new JsonDerivedType(typeof(LifecyclePrefixPredicate), "prefixPredicate")
+                                }
+                            };
+                        }
+                    }
+                }
+            }
         });
         Console.WriteLine($"Операция выполнена успешно. Результат: \n");
         // JSON стайлинг в формате Visual Studio Code
@@ -221,6 +298,7 @@ static async Task TryRetrieve<T>(Task<T> action) where T : StreamResponse
         Console.WriteLine($"Ошибка: {ex.Message}\n{ex.StackTrace}\nВложенная ошибка: {ex.InnerException?.Message}\n{ex.InnerException?.StackTrace}");
     }
 }
+#endregion
 
 /// <summary>
 /// Класс для хранения настроек подключения к Amazon S3.
@@ -247,4 +325,3 @@ class S3Settings
         !string.IsNullOrEmpty(BucketName) &&
         !string.IsNullOrEmpty(Region);
 }
-#endregion
