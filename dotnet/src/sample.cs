@@ -86,6 +86,34 @@ await TryExecute(
         DestinationKey = "example-from-text-copy.txt"
     }));
 
+Console.WriteLine("Присвоение тега `deleted=true` файлу `example-from-text-copy.txt`");
+await TryExecute(
+    s3Client.PutObjectTaggingAsync(new PutObjectTaggingRequest
+    {
+        BucketName = settings.BucketName,
+        Tagging = new Tagging { TagSet = [new Tag { Key = "deleted", Value = "true" }] },
+        Key = "example-from-text-copy.txt"
+    })
+);
+
+Console.WriteLine("Получение информации о тегах присвоенных файлу `example-from-text-copy.txt`");
+await TryExecute(
+    s3Client.GetObjectTaggingAsync(new GetObjectTaggingRequest
+    {
+        BucketName = settings.BucketName,
+        Key = "example-from-text-copy.txt"
+    })
+);
+
+Console.WriteLine("Удаление всех тегов присвоенных файлу `example-from-text-copy.txt`");
+await TryExecute(
+    s3Client.DeleteObjectTaggingAsync(new DeleteObjectTaggingRequest
+    {
+        BucketName = settings.BucketName,
+        Key = "example-from-text-copy.txt"
+    })
+);
+
 Console.WriteLine($"Удаление всех объектов.");
 await TryExecute(
     s3Client.DeleteObjectsAsync(new DeleteObjectsRequest
