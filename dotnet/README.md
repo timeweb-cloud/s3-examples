@@ -52,17 +52,17 @@ dotnet run sample.cs
 
 В проекте присутствует [Dockerfile](./Dockerfile) с двумя стейджами для уменьшения размера docker image:  
 
-**Stage 1**: Использует dotnet 10.0 SDK и конвертирует файл [sample.cs](./src/sample.cs) в классический формат проекта dotnet чтобы иметь возможность собрать исполняемый файл (пока что для direct file запуска требуется SDK, он довольно тяжеловесный). Из-за требований S3 библиотеки к функциям рефлексии, ради экономии времени было решено не идти по пути AOT (размер докер образа можно было бы уменьшить до ~<10mb)  
+**Stage 1**: Использует dotnet 10.0 SDK и конвертирует файл [sample.cs](./src/sample.cs) в классический формат проекта dotnet чтобы иметь возможность собрать исполняемый файл (пока что для direct file запуска требуется SDK, он довольно тяжеловесный). Сейчас проект запускается в режиме AOT (размер докер образа уменьшен до ~<30mb, можно оптимизировать еще больше)  
 **Stage 2**: Копирует компилированные файлы в исполняемый образ и создает `ENTRYPOINT`
 
-Для сборки проекта достаточно выполнить следующую CLI команду, находясь в папке `./dotnet`:
+Для сборки проекта достаточно выполнить следующую CLI команду, находясь в папке `./dotnet/src`:
 ```console
-docker build -t dotnet-s3-example:latest ./src
+docker build -t dotnet-s3-example:latest .
 ```
 
 Для запуска приложения после сборки:
 ```console
-docker run --rm -it --name dotnet-s3-example --env-file ./src/.env dotnet-s3-example:latest
+docker run --rm -it --name dotnet-s3-example --env-file .env dotnet-s3-example:latest
 ```
 
 ### Запуск через Visual Studio Code
