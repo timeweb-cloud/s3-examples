@@ -40,8 +40,6 @@ await TryExecute(
         BucketName = settings.BucketName,
         Key = "example-from-text.txt",
         ContentBody = "Привет, это файл созданный из текста!",
-        // флаг для обратной совместимостью с Timeweb S3, убрать когда Timeweb S3 актуализируется
-		DisableDefaultChecksumValidation = true
     }));
 
 Console.WriteLine($"Отправка нового текстового файла.");
@@ -52,9 +50,7 @@ await TryExecute(
     {
         BucketName = settings.BucketName,
         Key = "example-from-file.txt",
-        InputStream = file,
-        // флаг для обратной совместимостью с Timeweb S3, убрать когда Timeweb S3 актуализируется
-		DisableDefaultChecksumValidation = true
+        InputStream = file
     }));
 
 Console.WriteLine($"Получение списка объектов в бакете {settings.BucketName}.");
