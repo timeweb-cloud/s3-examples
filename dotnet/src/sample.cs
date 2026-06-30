@@ -11,11 +11,9 @@ using DotNetEnv;
 using Microsoft.Extensions.Configuration;
 using Spectre.Console;
 using Spectre.Console.Json;
-using System;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using System.Text.Json.Serialization.Metadata;
 
 var settings = LoadS3Settings();
 var s3Client = CreateS3Client(settings);
@@ -209,8 +207,7 @@ static S3Settings LoadS3Settings()
     if (settings == null)
         throw new ArgumentNullException(nameof(settings), "Настройки S3 не могут быть пустыми.");
     if (!settings.IsValid())
-        throw new ArgumentException("Все поля в настройках S3 должны быть заполнены, включая AccessKey, SecretKey, BucketName и ServiceUrl.");
-
+        throw new ArgumentException("Настройки S3 заполнены не полностью. Проверьте файл .env и переменные окружения.");
     return settings;
 }
 
@@ -220,33 +217,7 @@ static async Task TryExecute<T>(Task<T> action) where T : AmazonWebServiceRespon
     try
     {
         var response = await action;
-        var json = JsonSerializer.Serialize(response, new JsonSerializerOptions
-        {
-            WriteIndented = true,
-            PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-            DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingDefault,
-            //твик чтобы показать информацию про правила жизненного цикла объектов
-            TypeInfoResolver = new DefaultJsonTypeInfoResolver
-            {
-                Modifiers =
-                {
-                    ti =>
-                    {
-                        if (ti.Type == typeof(LifecycleFilterPredicate))
-                        {
-                            ti.PolymorphismOptions = new JsonPolymorphismOptions
-                            {
-                                DerivedTypes =
-                                {
-                                    new JsonDerivedType(typeof(LifecycleTagPredicate), "tagPredicate"),
-                                    new JsonDerivedType(typeof(LifecyclePrefixPredicate), "prefixPredicate")
-                                }
-                            };
-                        }
-                    }
-                }
-            }
-        });
+        var json = SerializeAwsResponse(response);
         Console.WriteLine($"Операция выполнена успешно. Результат: \n");
         // JSON стайлинг в формате Visual Studio Code
         AnsiConsole.Write(
@@ -294,6 +265,31 @@ static async Task TryRetrieve<T>(Task<T> action) where T : StreamResponse
         Console.WriteLine($"Ошибка: {ex.Message}\n{ex.StackTrace}\nВложенная ошибка: {ex.InnerException?.Message}\n{ex.InnerException?.StackTrace}");
     }
 }
+
+static string SerializeAwsResponse(AmazonWebServiceResponse response)
+{
+    return response switch
+    {
+        PutBucketResponse v => JsonSerializer.Serialize(v, AppJsonContext.Default.PutBucketResponse),
+        GetBucketLocationResponse v => JsonSerializer.Serialize(v, AppJsonContext.Default.GetBucketLocationResponse),
+        ListBucketsResponse v => JsonSerializer.Serialize(v, AppJsonContext.Default.ListBucketsResponse),
+        PutObjectResponse v => JsonSerializer.Serialize(v, AppJsonContext.Default.PutObjectResponse),
+        ListObjectsV2Response v => JsonSerializer.Serialize(v, AppJsonContext.Default.ListObjectsV2Response),
+        GetObjectMetadataResponse v => JsonSerializer.Serialize(v, AppJsonContext.Default.GetObjectMetadataResponse),
+        CopyObjectResponse v => JsonSerializer.Serialize(v, AppJsonContext.Default.CopyObjectResponse),
+        PutObjectTaggingResponse v => JsonSerializer.Serialize(v, AppJsonContext.Default.PutObjectTaggingResponse),
+        GetObjectTaggingResponse v => JsonSerializer.Serialize(v, AppJsonContext.Default.GetObjectTaggingResponse),
+        PutLifecycleConfigurationResponse v => JsonSerializer.Serialize(v, AppJsonContext.Default.PutLifecycleConfigurationResponse),
+        GetLifecycleConfigurationResponse v => JsonSerializer.Serialize(v, AppJsonContext.Default.GetLifecycleConfigurationResponse),
+        DeleteObjectTaggingResponse v => JsonSerializer.Serialize(v, AppJsonContext.Default.DeleteObjectTaggingResponse),
+        DeleteLifecycleConfigurationResponse v => JsonSerializer.Serialize(v, AppJsonContext.Default.DeleteLifecycleConfigurationResponse),
+        DeleteObjectsResponse v => JsonSerializer.Serialize(v, AppJsonContext.Default.DeleteObjectsResponse),
+        DeleteBucketResponse v => JsonSerializer.Serialize(v, AppJsonContext.Default.DeleteBucketResponse),
+        _ => JsonSerializer.Serialize(
+            new FallbackResponse(response.GetType().Name, (int)response.HttpStatusCode, response.ResponseMetadata?.RequestId),
+            AppJsonContext.Default.FallbackResponse)
+    };
+}
 #endregion
 
 /// <summary>
@@ -314,4 +310,31 @@ record S3Settings(string ServiceUrl, string AccessKey, string SecretKey, string 
         !string.IsNullOrEmpty(ServiceUrl) &&
         !string.IsNullOrEmpty(BucketName) &&
         !string.IsNullOrEmpty(Region);
+}
+
+//AOT friendly serialization for AWS SDK responses
+record FallbackResponse(string ResponseType, int HttpStatusCode, string? RequestId);
+
+[JsonSourceGenerationOptions(
+    WriteIndented = true,
+    PropertyNamingPolicy = JsonKnownNamingPolicy.CamelCase,
+    DefaultIgnoreCondition = JsonIgnoreCondition.Never)]
+[JsonSerializable(typeof(PutBucketResponse))]
+[JsonSerializable(typeof(GetBucketLocationResponse))]
+[JsonSerializable(typeof(ListBucketsResponse))]
+[JsonSerializable(typeof(PutObjectResponse))]
+[JsonSerializable(typeof(ListObjectsV2Response))]
+[JsonSerializable(typeof(GetObjectMetadataResponse))]
+[JsonSerializable(typeof(CopyObjectResponse))]
+[JsonSerializable(typeof(PutObjectTaggingResponse))]
+[JsonSerializable(typeof(GetObjectTaggingResponse))]
+[JsonSerializable(typeof(PutLifecycleConfigurationResponse))]
+[JsonSerializable(typeof(GetLifecycleConfigurationResponse))]
+[JsonSerializable(typeof(DeleteObjectTaggingResponse))]
+[JsonSerializable(typeof(DeleteLifecycleConfigurationResponse))]
+[JsonSerializable(typeof(DeleteObjectsResponse))]
+[JsonSerializable(typeof(DeleteBucketResponse))]
+[JsonSerializable(typeof(FallbackResponse))]
+internal partial class AppJsonContext : JsonSerializerContext
+{
 }
