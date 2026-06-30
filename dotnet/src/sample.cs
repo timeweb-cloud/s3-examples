@@ -310,14 +310,8 @@ static async Task TryRetrieve<T>(Task<T> action) where T : StreamResponse
 /// можно найти во вкладке `Дашборд` в разделе `Хранилище S3` 
 /// в личном кабинете Timeweb Cloud.
 /// </summary>
-class S3Settings
+record S3Settings(string ServiceUrl, string AccessKey, string SecretKey, string BucketName, string Region)
 {
-    public required string ServiceUrl { get; set; }
-    public required string AccessKey { get; set; }
-    public required string SecretKey { get; set; }
-    public required string BucketName { get; set; }
-    public required string Region { get; set; }
-
     public bool IsValid()
         => !string.IsNullOrEmpty(AccessKey) &&
         !string.IsNullOrEmpty(SecretKey) &&
