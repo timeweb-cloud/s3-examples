@@ -1,4 +1,4 @@
-#:package AWSSDK.S3@4.0.2
+#:package AWSSDK.S3@4.0.100
 #:package Microsoft.Extensions.Configuration.EnvironmentVariables@9.0.5
 #:package Microsoft.Extensions.Configuration.Binder@9.0.5
 #:package DotNetEnv@3.1.1
