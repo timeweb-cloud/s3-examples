@@ -16,7 +16,7 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 
 var settings = LoadS3Settings();
-var s3Client = CreateS3Client(settings);
+using var s3Client = CreateS3Client(settings);
 Console.WriteLine("S3 Клиент успешно создан и готов к работе.");
 
 Console.WriteLine($"Создание бакета {settings.BucketName}.");
