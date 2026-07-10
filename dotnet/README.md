@@ -57,7 +57,7 @@ dotnet run sample.cs
 
 Для сборки проекта достаточно выполнить следующую CLI команду, находясь в папке `./dotnet/src`:
 ```console
-docker build -t dotnet-s3-example:latest .
+docker build -t dotnet-s3-example:latest -f ./Dockerfile .
 ```
 
 Для запуска приложения после сборки:
