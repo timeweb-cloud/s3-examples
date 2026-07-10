@@ -248,7 +248,7 @@ static async Task TryRetrieve<T>(Task<T> action) where T : StreamResponse
 {
     try
     {
-        var response = await action;
+        using var response = await action;
         using var reader = new StreamReader(response.ResponseStream);
         // Исключительно для текстовых файлов
         var text = await reader.ReadToEndAsync();
